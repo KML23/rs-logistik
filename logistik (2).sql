@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 14, 2025 at 10:27 AM
+-- Generation Time: May 15, 2025 at 10:06 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -113,7 +113,8 @@ INSERT INTO `db_menu` (`id`, `sub_id`, `nama_menu`, `link_page`, `modul`, `faico
 (8, 5, 'Satuan Barang', 'gl-satuan-barang', 'gl_satuan_barang', 'fa-balance-scale', 3, 1, 0, '0000-00-00 00:00:00', '2025-02-12 08:47:56', ''),
 (9, 5, 'Order', 'gl-order', 'gl_order', 'fa-shopping-cart', 5, 1, 0, '0000-00-00 00:00:00', '2025-02-17 09:12:34', ''),
 (10, 5, 'Data Supplier', 'gl-data-supplier', 'gl_data_supplier', 'fa-truck', 4, 1, 0, '2025-02-15 04:28:27', '2025-02-17 09:12:37', ''),
-(11, 5, 'Order Barang', 'gl-1order-barang\n', 'gl_1order_barang', '', 6, 1, 0, '2025-02-20 07:37:50', '2025-02-20 08:00:30', '');
+(11, 5, 'Order Barang', 'gl-1order-barang\n', 'gl_1order_barang', '', 6, 1, 0, '2025-02-20 07:37:50', '2025-02-20 08:00:30', ''),
+(12, 5, 'Barang Keluar', 'gl-barang-keluar', 'gl_barang_keluar', 'fas fa-share-square', 7, 1, 0, '2025-05-15 16:26:12', '2025-05-15 09:26:12', '');
 
 -- --------------------------------------------------------
 
@@ -230,7 +231,8 @@ INSERT INTO `db_user_akses` (`id`, `id_level`, `id_menu`, `hk_add`, `hk_edit`, `
 (8, 1, 8, 1, 1, 1, 1, 0, '0000-00-00 00:00:00', '2018-08-01 06:27:25', ''),
 (9, 1, 9, 1, 1, 1, 1, 0, '2000-01-01 00:00:00', '2025-02-15 04:00:10', ''),
 (10, 1, 10, 1, 1, 1, 1, 0, '2025-02-15 04:31:00', '2025-02-15 04:31:19', ''),
-(11, 1, 11, 1, 1, 1, 0, 0, '2025-02-20 07:39:31', '2025-02-20 08:02:02', '');
+(11, 1, 11, 1, 1, 1, 0, 0, '2025-02-20 07:39:31', '2025-02-20 08:02:02', ''),
+(12, 1, 12, 1, 1, 1, 1, 0, '2025-05-15 16:29:51', '2025-05-15 09:30:09', '');
 
 -- --------------------------------------------------------
 
@@ -268,6 +270,42 @@ CREATE TABLE `distribusi_barang` (
   `jumlah` int NOT NULL,
   `tanggal_distribusi` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gl_barang_keluar`
+--
+
+CREATE TABLE `gl_barang_keluar` (
+  `id_barang_keluar` int NOT NULL,
+  `no_transaksi` varchar(30) NOT NULL,
+  `nama_unit` varchar(100) NOT NULL,
+  `nama_pengambil` varchar(100) NOT NULL,
+  `tanggal_transaksi` datetime NOT NULL,
+  `keterangan` text,
+  `hapus` tinyint(1) NOT NULL DEFAULT '0',
+  `tgl_insert` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `tgl_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `user_update` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gl_barang_keluar_detail`
+--
+
+CREATE TABLE `gl_barang_keluar_detail` (
+  `id_detail_barang_keluar` int NOT NULL,
+  `id_barang_keluar` int NOT NULL,
+  `id_barang` int NOT NULL,
+  `jumlah_keluar` int NOT NULL,
+  `hapus` tinyint(1) NOT NULL DEFAULT '0',
+  `tgl_insert` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `tgl_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `user_update` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
 
 -- --------------------------------------------------------
 
@@ -589,6 +627,22 @@ ALTER TABLE `distribusi_barang`
   ADD KEY `id_permintaan` (`id_permintaan`);
 
 --
+-- Indexes for table `gl_barang_keluar`
+--
+ALTER TABLE `gl_barang_keluar`
+  ADD PRIMARY KEY (`id_barang_keluar`),
+  ADD KEY `no_transaksi` (`no_transaksi`),
+  ADD KEY `tanggal_transaksi` (`tanggal_transaksi`);
+
+--
+-- Indexes for table `gl_barang_keluar_detail`
+--
+ALTER TABLE `gl_barang_keluar_detail`
+  ADD PRIMARY KEY (`id_detail_barang_keluar`),
+  ADD KEY `id_barang_keluar` (`id_barang_keluar`),
+  ADD KEY `id_barang` (`id_barang`);
+
+--
 -- Indexes for table `gl_data_barang`
 --
 ALTER TABLE `gl_data_barang`
@@ -704,6 +758,18 @@ ALTER TABLE `distribusi_barang`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `gl_barang_keluar`
+--
+ALTER TABLE `gl_barang_keluar`
+  MODIFY `id_barang_keluar` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `gl_barang_keluar_detail`
+--
+ALTER TABLE `gl_barang_keluar_detail`
+  MODIFY `id_detail_barang_keluar` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `gl_data_barang`
 --
 ALTER TABLE `gl_data_barang`
@@ -772,6 +838,12 @@ ALTER TABLE `daftar_hitam_barang`
 --
 ALTER TABLE `distribusi_barang`
   ADD CONSTRAINT `distribusi_barang_ibfk_1` FOREIGN KEY (`id_permintaan`) REFERENCES `permintaan_barang` (`id`);
+
+--
+-- Constraints for table `gl_barang_keluar_detail`
+--
+ALTER TABLE `gl_barang_keluar_detail`
+  ADD CONSTRAINT `gl_barang_keluar_detail_ibfk_1` FOREIGN KEY (`id_barang_keluar`) REFERENCES `gl_barang_keluar` (`id_barang_keluar`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `permintaan_barang`
