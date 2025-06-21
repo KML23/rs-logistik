@@ -313,190 +313,255 @@ case "proses":
             $sqld = "SELECT o.*, s.nama_supplier FROM gl_order o
                     JOIN gl_data_supplier s ON o.id_gl_supplier = s.id
                     WHERE o.id = ? AND o.hapus = 0";
-
+        
             $stmt = mysqli_prepare($db_result, $sqld);
             mysqli_stmt_bind_param($stmt, "i", $gid);
             mysqli_stmt_execute($stmt);
             $data = mysqli_stmt_get_result($stmt);
             $ndata = mysqli_num_rows($data);
-
+        
             if ($ndata > 0) {
                 $fdata = mysqli_fetch_assoc($data);
-                extract($fdata);
+                $simpan = $fdata['simpan'];
+                $status = $fdata['status'];
+                
+                // Query untuk detail barang
+                $sql_barang = "SELECT ob.*, b.nama_barang, s.nama_satuan 
+                              FROM gl_order_barang ob 
+                              JOIN gl_data_barang b ON ob.id_gl_data_barang = b.id 
+                              JOIN gl_satuan_barang s ON b.id_gl_satuan_barang = s.id 
+                              WHERE ob.id_gl_order = ? AND ob.hapus = 0";
+                $stmt_barang = mysqli_prepare($db_result, $sql_barang);
+                mysqli_stmt_bind_param($stmt_barang, "i", $gid);
+                mysqli_stmt_execute($stmt_barang);
+                $data_barang = mysqli_stmt_get_result($stmt_barang);
+                
+                // Hitung total item dan total beli
+                $total_items = 0;
+                $total_beli = 0;
+                $rows_barang = '';
+                $counter = 0;
+                while ($row = mysqli_fetch_assoc($data_barang)) {
+                    $counter++;
+                    $total_items += $row['jml_barang'];
+                    $total_beli += $row['total_beli'];
+                    
+                    $btn_edit = $simpan == 0 ? "<a href='{$link_back}&act=edit_barang&gid={$row['id']}' class='btn btn-xs btn-success'><i class='fa fa-edit'></i> Edit</a>" : "";
+                    $btn_hapus = $simpan == 0 ? "<a href='{$link_back}&act=hapus_barang&gid={$row['id']}' class='btn btn-xs btn-danger' onclick='return confirm(\"Yakin hapus item ini?\");'><i class='fa fa-trash'></i> Hapus</a>" : "";
+                    
+                    $rows_barang .= "<tr>
+                        <td>{$counter}</td>
+                        <td>".htmlspecialchars($row['nama_barang'])."</td>
+                        <td>".htmlspecialchars($row['nama_satuan'])."</td>
+                        <td class='text-right'>{$row['jml_barang']}</td>
+                        <td class='text-right'>".number_format($row['harga_beli'], 0, ',', '.')."</td>
+                        <td class='text-right'>".number_format($row['total_beli'], 0, ',', '.')."</td>
+                        <td>{$btn_edit} {$btn_hapus}</td>
+                    </tr>";
+                }
+                
+                // Query untuk dropdown barang
+                $sql_data_barang = "SELECT id, nama_barang FROM gl_data_barang WHERE hapus = 0";
+                $result_data_barang = mysqli_query($db_result, $sql_data_barang);
+                $options_barang = '<option value="">Pilih Barang</option>';
+                while ($row = mysqli_fetch_assoc($result_data_barang)) {
+                    $options_barang .= "<option value='{$row['id']}'>{$row['nama_barang']}</option>";
+                }
+                
+                // Format tanggal
+                $tgl_order = date('d-m-Y H:i', strtotime($fdata['tgl_order']));
+                $tgl_datang = $fdata['tgl_datang'] ? date('d-m-Y H:i', strtotime($fdata['tgl_datang'])) : '-';
+                ?>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Order Barang</h3>
+                                <div class="box-tools pull-right">
 
-                // Ubah status menjadi label "Aktif" atau "Tidak Aktif"
-                $btn_status = ($status == 1) ? "<span class='label label-success'>Aktif</span>" : "<span class='label label-danger'>Tidak Aktif</span>";
-
-                // Tampilkan detail order dan form tambah barang dalam satu box
-                echo "<div class='box box-primary'>
-                        <div class='box-header with-border'>
-                            <h3 class='box-title'>Order Barang</h3>
-                        </div>
-                        <div class='box-body'>
-                            <div class='row'>
-                                <div class='col-md-3'> <!-- Kolom untuk detail order -->
-                                    <div class='box'>
-                                        <div class='box-header with-border'>
-                                            <h4><b>Detail Order</b></h4>
-                                        </div>
-                                        <div class='box-body'>
-                                            <table class='table' style='border: none;'>
-                                                <tbody>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Tanggal Order:</strong></td>
-                                                        <td style='border: none;'>$tgl_order</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Supplier:</strong></td>
-                                                        <td style='border: none;'>$nama_supplier</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Tanggal Datang:</strong></td>
-                                                        <td style='border: none;'>$tgl_datang</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>No Faktur:</strong></td>
-                                                        <td style='border: none;'>$no_faktur</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Status:</strong></td>
-                                                        <td style='border: none;'>$btn_status</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Keterangan:</strong></td>
-                                                        <td style='border: none;'>$keterangan</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='border: none;'><strong>Simpan:</strong></td>
-                                                        <td style='border: none;'>" . ($simpan == 1 ? "Order sudah disimpan dan tidak dapat diubah." : "Order belum disimpan.") . "</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <a href='$link_back' class='btn btn-danger'><i class='fa fa-caret-left'></i> Kembali</a>
-                                </div>
-                                <div class='col-md-9'> <!-- Kolom untuk form tambah barang dan tabel -->
-                                    <div class='box'>
-                                        <div class='box-header with-border'>
-                                            <h4><b>Tambah Barang ke Order</b></h4>
-                                        </div>
-                                        <div class='box-body'>";
-
-                                    // Form tambah barang jika order belum disimpan
-                                    if ($simpan == 0) {
-                                        echo "<form method='post' action='$link_back&act=add_barang&gid=$gid'>
-                                            <div class='form-group row'>
-                                                <label class='col-md-2 col-form-label'>Barang</label>
-                                                <div class='col-md-4'>
-                                                    <select name='id_gl_data_barang' class='form-control select2' required>
-                                                        <option value=''>Pilih Barang</option>";
-                                                        // Ambil data barang untuk dropdown
-                                                        $sql_data_barang = "SELECT id, nama_barang FROM gl_data_barang WHERE hapus = 0";
-                                                        $result_data_barang = mysqli_query($db_result, $sql_data_barang);
-                                                        while ($row_data_barang = mysqli_fetch_assoc($result_data_barang)) {
-                                                            echo "<option value='{$row_data_barang['id']}'>{$row_data_barang['nama_barang']}</option>";
-                                                        }
-                                                echo "  </select>
-                                                </div>
-                                                <label class='col-md-2 col-form-label'>Jumlah</label>
-                                                <div class='col-md-4'>
-                                                    <input type='number' class='form-control' name='jml_barang' required />
-                                                </div>
-                                            </div>
-                                            <div class='form-group row'>
-                                                <label class='col-md-2 col-form-label'>Harga Beli</label>
-                                                <div class='col-md-4'>
-                                                    <input type='text' class='form-control' name='harga_beli' required />
-                                                </div>
-                                                <div class='col-md-2'>
-                                                    <button type='submit' class='btn btn-success'>Tambah Barang</button>
-                                                </div>
-                                            </div>
-                                        </form>";
-                                    } else {
-                                        echo "<div class='alert alert-warning'>Data sudah disimpan dan tidak dapat diubah lagi.</div>";
-                                    }
-
-                                    echo "</div>
-                                    </div>
-                                    <hr> <!-- Pembatas antara form dan tabel -->
-                                    <h4><b>Daftar Barang dalam Order</b></h4>
-                                    <div class='table-responsive'>
-                                        <table class='table table-bordered'>
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Nama Barang</th>
-                                                    <th>Satuan</th>
-                                                    <th>Jumlah</th>
-                                                    <th>Harga Beli</th>
-                                                    <th>Total Beli</th>
-                                                    <th>Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>";
-                                            // Tampilkan data barang yang sudah ada di gl_order_barang
-                                            $sql_barang = "SELECT ob.*, b.nama_barang, s.nama_satuan FROM gl_order_barang ob 
-                                                            JOIN gl_data_barang b ON ob.id_gl_data_barang = b.id 
-                                                            JOIN gl_satuan_barang s ON b.id_gl_satuan_barang = s.id 
-                                                            WHERE ob.id_gl_order = ? AND ob.hapus = 0"; 
-                                            $stmt_barang = mysqli_prepare($db_result, $sql_barang);
-                                            mysqli_stmt_bind_param($stmt_barang, "i", $gid); // Ambil barang berdasarkan ID order
-                                            mysqli_stmt_execute($stmt_barang);
-                                            $data_barang = mysqli_stmt_get_result($stmt_barang);
-                                            $ndata_barang = mysqli_num_rows($data_barang);
-
-                                            if ($ndata_barang > 0) {
-                                                $no = 0;
-                                                while ($row_barang = mysqli_fetch_assoc($data_barang)) {
-                                                    $no++;
-                                                    $id_barang = $row_barang['id'];
-                                                    $btn_edit = "<a href='$link_back&act=edit_barang&gid=$id_barang' class='btn btn-xs btn-success' " . ($simpan == 1 ? "disabled" : "") . "><i class='fa fa-edit'></i> Edit</a>";
-                                                    $btn_hapus = "<a href='$link_back&act=hapus_barang&gid=$id_barang' class='btn btn-xs btn-danger' " . ($simpan == 1 ? "disabled" : "") . "><i class='fa fa-trash'></i> Hapus</a>";
-
-                                                    echo "<tr>
-                                                        <td>$no</td>
-                                                        <td>{$row_barang['nama_barang']}</td>
-                                                        <td>{$row_barang['nama_satuan']}</td>
-                                                        <td>{$row_barang['jml_barang']}</td>
-                                                        <td>{$row_barang['harga_beli']}</td>
-                                                        <td>{$row_barang['total_beli']}</td>
-                                                        <td>
-                                                            $btn_edit $btn_hapus
-                                                        </td>
-                                                    </tr>";
-                                                }
-                                            } else {
-                                                echo "<tr><td colspan='7' class='text-center'>Tidak ada barang dalam order ini.</td></tr>";
-                                            }
-                                echo "  </tbody>
-                                    </table>
-                                </div>";
-
-                                    // Tombol Simpan Stok untuk seluruh order
-                                    echo ($simpan == 0 ? "<form method='post' action='$link_back&act=simpan_stok' id='save-stock-form'>
-                                        <input type='hidden' name='gid' value='$gid'>
-                                        <button type='submit' class='btn btn-primary' onclick='return confirmSaveStock();'>
-                                            <i class='fa fa-save'></i> Simpan Stok
-                                        </button>
-                                    </form>" : "<div class='alert alert-info'>Stok sudah disimpan.</div>") . "
                                 </div>
                             </div>
-                        </div>";
-
-                        // Menampilkan tombol Batalkan Order jika order sudah disimpan
-                        if ($simpan == 1) {
-                            echo "<form method='post' action='$link_back&act=batal_order&gid=$gid' style='position: absolute; right: 10px; bottom: 10px;' id='cancel-order-form'>
-                                    <button type='submit' class='btn btn-danger' onclick='return confirmCancel();'>
-                                        <i class='fa fa-times'></i> Batalkan Order
-                                    </button>
-                                  </form>";
-                        }
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">Detail Order</h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                <table class="table table-condensed">
+                                                    <tr>
+                                                        <th width="120">Tanggal Order</th>
+                                                        <td><?php echo $tgl_order; ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Supplier</th>
+                                                        <td><?php echo htmlspecialchars($fdata['nama_supplier']); ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal Datang</th>
+                                                        <td><?php echo $tgl_datang; ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>No Faktur</th>
+                                                        <td><?php echo htmlspecialchars($fdata['no_faktur']); ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Status</th>
+                                                        <td>
+                                                            <?php if ($status == 1): ?>
+                                                                <span class="label label-success">Aktif</span>
+                                                            <?php else: ?>
+                                                                <span class="label label-danger">Tidak Aktif</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Total Item</th>
+                                                        <td><?php echo $total_items; ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Total Beli</th>
+                                                        <td>Rp <?php echo number_format($total_beli, 0, ',', '.'); ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Status Simpan</th>
+                                                        <td>
+                                                            <?php if ($simpan == 1): ?>
+                                                                <span class="label label-success">Tersimpan</span>
+                                                            <?php else: ?>
+                                                                <span class="label label-warning">Draft</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Keterangan</th>
+                                                        <td><?php echo htmlspecialchars($fdata['keterangan']); ?></td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <a href="<?php echo htmlspecialchars($link_back); ?>" class="btn btn-sl btn-danger"><i class="fa fa-arrow-left"></i> Kembali</a>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <?php if ($simpan == 0): ?>
+                                        <div class="panel panel-primary">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">Tambah Barang ke Order</h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                <form method="post" action="<?php echo htmlspecialchars($link_back.'&act=add_barang&gid='.$gid); ?>">
+                                                    <div class="form-group row">
+                                                        <label class="col-md-2 col-form-label">Barang</label>
+                                                        <div class="col-md-4">
+                                                            <select name="id_gl_data_barang" class="form-control select2" required>
+                                                                <?php echo $options_barang; ?>
+                                                            </select>
+                                                        </div>
+                                                        <label class="col-md-2 col-form-label">Jumlah</label>
+                                                        <div class="col-md-4">
+                                                            <input type="number" class="form-control" name="jml_barang" required />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <label class="col-md-2 col-form-label">Harga Beli</label>
+                                                        <div class="col-md-4">
+                                                            <input type="text" class="form-control" name="harga_beli" required />
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="submit" class="btn btn-success">Tambah Barang</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="alert alert-warning">Data sudah disimpan dan tidak dapat diubah lagi.</div>
+                                        <?php endif; ?>
+                                        
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">Daftar Barang dalam Order</h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                <?php if ($counter == 0): ?>
+                                                    <div class="alert alert-info">Belum ada barang yang ditambahkan</div>
+                                                <?php else: ?>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered table-striped">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th width="30">No</th>
+                                                                    <th>Nama Barang</th>
+                                                                    <th>Satuan</th>
+                                                                    <th width="100">Jumlah</th>
+                                                                    <th width="120">Harga Beli</th>
+                                                                    <th width="150">Total Beli</th>
+                                                                    <th width="120">Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php echo $rows_barang; ?>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <th colspan="3" class="text-right">Total</th>
+                                                                    <th class="text-right"><?php echo $total_items; ?></th>
+                                                                    <th></th>
+                                                                    <th class="text-right">Rp <?php echo number_format($total_beli, 0, ',', '.'); ?></th>
+                                                                    <th></th>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <?php if ($simpan == 0 && $counter > 0): ?>
+                                        <form method="post" action="<?php echo htmlspecialchars($link_back.'&act=simpan_stok'); ?>">
+                                            <input type="hidden" name="gid" value="<?php echo $gid; ?>">
+                                            <div class="form-group">
+                                                <button type="submit" class="btn btn-primary" onclick="return confirm('Simpan order ini? Setelah disimpan tidak bisa diubah lagi.');">
+                                                    <i class="fa fa-save"></i> Simpan Stok
+                                                </button>
+                                            </div>
+                                        </form>
+                                        <?php elseif ($simpan == 1): ?>
+                                        <div class="alert alert-info">Stok sudah disimpan.</div>
+                                        <form method="post" action="<?php echo htmlspecialchars($link_back.'&act=batal_order&gid='.$gid); ?>" class="pull-right">
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Batalkan order ini? Stok akan dikembalikan.');">
+                                                <i class="fa fa-times"></i> Batalkan Order
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                $(document).ready(function() {
+                    // Initialize select2
+                    $('.select2').select2();
                     
+                    // Format input harga
+                    $('input[name="harga_beli"]').on('keyup', function() {
+                        var value = $(this).val().replace(/\D/g, '');
+                        $(this).val(formatNumber(value));
+                    });
+                    
+                    function formatNumber(num) {
+                        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')
+                    }
+                });
+                </script>
+                <?php
             } else {
                 echo "<div class='alert alert-warning'>Data Tidak Ditemukan</div>";
-                echo "<meta http-equiv='refresh' content='2;url=$link_back'>";
+                echo "<meta http-equiv='refresh' content='2;url=".htmlspecialchars($link_back)."'>";
             }
             break;
 
