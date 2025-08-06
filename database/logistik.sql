@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 21 Jun 2025 pada 09.34
+-- Waktu pembuatan: 06 Agu 2025 pada 08.57
 -- Versi server: 8.0.30
 -- Versi PHP: 8.1.10
 
@@ -297,7 +297,9 @@ CREATE TABLE `gl_barang_keluar` (
 
 INSERT INTO `gl_barang_keluar` (`id_barang_keluar`, `no_transaksi`, `nama_unit`, `nama_pengambil`, `tanggal_transaksi`, `keterangan`, `hapus`, `simpan`, `tgl_insert`, `tgl_update`, `user_update`) VALUES
 (1, 'REQ-13456', 'ICCU', 'SOPO', '2025-05-16 17:05:00', 'adsasda', 0, 0, '2025-05-16 17:05:14', '2025-05-16 10:05:14', 'admin'),
-(2, 'REQ-13457', 'IGD', 'YTTA', '2025-05-27 15:29:00', 'REQ MINUM', 0, 0, '2025-05-27 15:29:47', '2025-06-20 09:16:04', 'admin');
+(2, 'REQ-13457', 'IGD', 'YTTA', '2025-05-27 15:29:00', 'REQ MINUM', 0, 0, '2025-05-27 15:29:47', '2025-07-21 07:07:57', 'admin'),
+(3, 'REQ-134554', 'RM', 'JKJ', '2025-07-21 13:53:00', 'JHJHJ', 0, 1, '2025-07-21 13:53:55', '2025-07-21 07:07:48', 'admin'),
+(4, 'REQ-13457455', 'IT', 'KEMAL', '2025-07-21 13:57:00', 'MINTA KOPI', 0, 1, '2025-07-21 13:57:40', '2025-07-21 06:58:52', 'admin');
 
 -- --------------------------------------------------------
 
@@ -323,7 +325,10 @@ CREATE TABLE `gl_barang_keluar_detail` (
 INSERT INTO `gl_barang_keluar_detail` (`id_detail_barang_keluar`, `id_barang_keluar`, `id_barang`, `jumlah_keluar`, `hapus`, `tgl_insert`, `tgl_update`, `user_update`) VALUES
 (1, 2, 1, 10, 1, '2025-06-16 19:37:26', '2025-06-18 10:51:24', 'admin'),
 (6, 2, 1, 10, 0, '2025-06-20 15:44:32', '2025-06-20 09:13:53', 'admin'),
-(7, 2, 3, 5, 1, '2025-06-20 15:44:43', '2025-06-20 08:45:02', 'admin');
+(7, 2, 3, 5, 1, '2025-06-20 15:44:43', '2025-06-20 08:45:02', 'admin'),
+(8, 2, 4, 100, 0, '2025-07-21 13:52:34', '2025-07-21 06:52:34', 'admin'),
+(9, 4, 3, 10, 0, '2025-07-21 13:57:56', '2025-07-21 06:58:15', 'admin'),
+(10, 3, 1, 1, 0, '2025-07-21 14:07:43', '2025-07-21 07:07:43', 'admin');
 
 -- --------------------------------------------------------
 
@@ -349,10 +354,10 @@ CREATE TABLE `gl_data_barang` (
 --
 
 INSERT INTO `gl_data_barang` (`id`, `nama_barang`, `id_gl_jenis_barang`, `id_gl_satuan_barang`, `status`, `hapus`, `tgl_insert`, `tgl_update`, `user_update`, `jml_stok_gudang`) VALUES
-(1, 'Aqua 1,500ml', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-06-20 16:16:04', 'admin', '9925'),
+(1, 'Aqua 1,500ml', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-07-21 14:07:57', 'admin', '9924'),
 (2, 'Aqua 600ml', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-05-09 17:15:57', 'admin', '0'),
-(3, 'Aqua Galon Refill', 1, 2, 1, 0, '2025-02-14 15:18:53', '2025-05-09 17:20:58', 'admin', '50'),
-(4, 'Aqua Gelas', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-05-14 17:21:55', 'admin', '505'),
+(3, 'Aqua Galon Refill', 1, 2, 1, 0, '2025-02-14 15:18:53', '2025-07-21 13:58:52', 'admin', '40'),
+(4, 'Aqua Gelas', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-07-21 14:07:57', 'admin', '505'),
 (5, 'Le Minerale Botol 330', 1, 1, 1, 0, '2025-02-14 15:18:53', '2025-02-14 15:19:18', 'admin', '0'),
 (6, 'Qmas Botol 330', 2, 1, 1, 0, '2025-02-14 15:18:53', '2025-04-25 13:00:06', 'admin', '450'),
 (7, 'Qmas Gelas', 2, 1, 1, 0, '2025-02-14 15:18:53', '2025-03-11 14:12:38', 'admin', '50'),
@@ -779,13 +784,13 @@ ALTER TABLE `distribusi_barang`
 -- AUTO_INCREMENT untuk tabel `gl_barang_keluar`
 --
 ALTER TABLE `gl_barang_keluar`
-  MODIFY `id_barang_keluar` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_barang_keluar` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `gl_barang_keluar_detail`
 --
 ALTER TABLE `gl_barang_keluar_detail`
-  MODIFY `id_detail_barang_keluar` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_detail_barang_keluar` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `gl_data_barang`

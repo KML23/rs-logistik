@@ -207,14 +207,24 @@ case 'hapus':
             $nama_pengambil = htmlspecialchars($row['nama_pengambil']);
             $tanggal_transaksi = date('d-m-Y H:i', strtotime($row['tanggal_transaksi']));
             $keterangan = htmlspecialchars($row['keterangan']);
+            $simpan = htmlspecialchars($row['simpan']);
 
             // Tombol untuk Edit, Hapus, dan Detail
-            $btn_edit = '<a href="' . htmlspecialchars($link_back) . '&act=input&gket=edit&gid=' . $id . '" class="btn btn-xs btn-success"><i class="fa fa-edit"></i> Edit</a>';
-            $btn_hapus = '<a href="' . htmlspecialchars($link_back) . '&act=hapus&gid=' . $id . '" onclick="return confirm(\'Apakah Anda yakin ingin menghapus transaksi ini?\');" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> Hapus</a>';
-            $btn_detail = '<a href="' . htmlspecialchars($link_back) . '&act=detail_keluar&gid=' . $id . '" class="btn btn-xs btn-info"><i class="fa fa-info-circle"></i> Detail</a>';  // Tombol Detail
+            if($simpan == 0){
+                    $btn_edit = '<a href="' . htmlspecialchars($link_back) . '&act=input&gket=edit&gid=' . $id . '" class="btn btn-xs btn-success"><i class="fa fa-edit"></i> Edit</a>';
+                    $btn_hapus = '<a href="' . htmlspecialchars($link_back) . '&act=hapus&gid=' . $id . '" onclick="return confirm(\'Apakah Anda yakin ingin menghapus transaksi ini?\');" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> Hapus</a>';
 
-            // Menambahkan data pada tabel
-            $td_table .= '<tr>
+                }else if($simpan == 1) {
+                    
+                    $btn_edit = "";
+                    $btn_hapus = "";
+                }
+                
+                $btn_detail = '<a href="' . htmlspecialchars($link_back) . '&act=detail_keluar&gid=' . $id . '" class="btn btn-xs btn-info"><i class="fa fa-info-circle"></i> Detail</a>';  // Tombol Detail
+
+
+                // Menambahkan data pada tabel
+                $td_table .= '<tr>
                 <td>' . $no . '</td>
                 <td>' . $no_transaksi . '</td>
                 <td>' . $nama_unit . '</td>
